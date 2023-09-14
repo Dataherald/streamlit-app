@@ -1,0 +1,3 @@
+[submodule "dataherald"]
+	path = dataherald
+	url = https://github.com/Dataherald/dataherald.git
