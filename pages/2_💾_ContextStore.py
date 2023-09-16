@@ -110,11 +110,14 @@ with st.form("Golden records"):
     if st.form_submit_button("Add"):
         if add_or_upload == "Add":
             with st.spinner("Adding golden record..."):
-                data = {
-                    "db_connection_id": st.session_state["connection_id"],
-                    "question": question,
-                    "sql_query": sql_query
-                }
+                try:
+                    data = {
+                        "db_connection_id": st.session_state["connection_id"],
+                        "question": question,
+                        "sql_query": sql_query
+                    }
+                except KeyError:
+                    st.warning("Please select a database connection.")
                 add_golden_records([data])
         else:
             with st.spinner("Uploading golden records..."):
@@ -131,6 +134,8 @@ with st.form("Golden records"):
                                 })
                             else:
                                 st.warning("Uploaded file contains incomplete data.")
+                        except KeyError:
+                            st.warning("Uploaded file contains incomplete data.")
                         except json.JSONDecodeError as e:
                             st.warning(
                                 f"Invalid JSON format in the uploaded file due to {e}."
@@ -146,7 +151,10 @@ with st.form("View golden records"):
         with st.spinner("Loading golden records..."):
             golden_records = get_golden_records()
             df = pd.DataFrame(golden_records)
-            df = df[df['db_connection_id'] == st.session_state["connection_id"]]
+            try:
+                df = df[df['db_connection_id'] == st.session_state["connection_id"]]
+            except KeyError:
+                st.warning("Please select a database connection.")
             df = df.iloc[(page-1)*limit:page*limit]
             df.drop(columns=["db_connection_id"], inplace=True)
             df.reset_index(drop=True, inplace=True)
