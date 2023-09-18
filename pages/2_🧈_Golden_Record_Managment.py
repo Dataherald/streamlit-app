@@ -80,7 +80,7 @@ st.set_page_config(
 
 HOST = st.session_state["HOST"]
 
-st.title("Golden Records")
+st.title("🧈 Golden Record Management")
 
 with st.form("Databases"):
     st.info("Select a database connection to add or delete golden records.")

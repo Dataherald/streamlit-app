@@ -61,7 +61,7 @@ st.set_page_config(
 
 HOST = st.session_state["HOST"]
 
-st.title("Databases")
+st.title("🗃️ Database Informaton")
 with st.form("Scan tables"):
     st.header("Scan tables")
     database_connections = get_all_database_connections()
