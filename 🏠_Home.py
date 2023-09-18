@@ -3,6 +3,7 @@ import json
 import streamlit as st
 import time
 import pandas as pd
+import webbrowser
 
 from PIL import Image
 from pathlib import Path
@@ -71,6 +72,14 @@ def type_text(text, answer_container):
         time.sleep(0.02)
     st.divider()
 
+def type_code(text, answer_container):
+    text = text.strip()
+    answer_container =  st.empty()
+    for i in range(len(text) + 1):
+        answer_container.code(text[0:i], language="sql")
+        time.sleep(0.02)
+    st.divider()
+
 def json_to_dataframe(json_data):
     if json_data is None:
         return pd.DataFrame()
@@ -89,15 +98,22 @@ def test_connection():
             return False
     except requests.exceptions.ConnectionError:
         return False
+    
+def create_button_link(text, url):
+    button_clicked = st.sidebar.button(text)
+    if button_clicked:
+        webbrowser.open_new_tab(url)
 
 st.set_page_config(
     page_title="Dataherald",
-    page_icon="🧠",
+    page_icon="./images/logo.png",
     layout="wide")
 
 # Setup environment settings
 st.sidebar.title("Dataherald")
-st.sidebar.write("Ask questions about your data.")
+st.sidebar.write("Query your structured database in natural language.")
+st.sidebar.write("Enable business users to get answers to ad hoc data questions in seconds.")  # noqa: E501
+create_button_link("Visit our website", "https://www.dataherald.com/")
 st.sidebar.subheader("Connect to the engine")
 HOST = st.sidebar.text_input("Engine URI", value="http://localhost")
 st.session_state["HOST"] = HOST
@@ -111,7 +127,7 @@ if st.sidebar.button("Connect"):
         st.sidebar.error("Connection failed.")
 
 # Setup main page
-st.title("Dataherald Engine")
+st.image("images/dataherald.png", use_column_width=True)
 
 if not test_connection():
     st.error("Could not connect to engine. Please connect to the engine on the left sidebar.")  # noqa: E501
@@ -149,14 +165,13 @@ if with_clear_container(submit_clicked):
             st.error("Please connect to a database first.")
             st.stop()
     try:
-        sql_query = f"📝 Generated SQL Query: {answer['sql_query']}"
-        type_text(sql_query, answer_container)
+        results_from_db = json_to_dataframe(answer["sql_query_result"])
+        answer_container.dataframe(results_from_db)
+        type_code(answer['sql_query'], answer_container)
         confidence = f"📊 Confidence: {answer['confidence_score']}"
         type_text(confidence, answer_container)
         nl_answer = f"🤔 Agent response: {answer['nl_response']}"
         type_text(nl_answer, answer_container)
-        results_from_db = json_to_dataframe(answer["sql_query_result"])
-        answer_container.dataframe(results_from_db)
     except KeyError:
         st.error("Please connect to a correct database first.")
         st.stop()

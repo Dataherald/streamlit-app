@@ -55,7 +55,7 @@ def list_table_descriptions(db_connection_id):
 
 st.set_page_config(
     page_title="Dataherald",
-    page_icon="📚",
+    page_icon="./images/logo.png",
     layout="wide",
     initial_sidebar_state="collapsed")
 

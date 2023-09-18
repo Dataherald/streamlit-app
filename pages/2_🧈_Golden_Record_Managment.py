@@ -74,7 +74,7 @@ def delete_golden_record(golden_record_id):
 
 st.set_page_config(
     page_title="Dataherald",
-    page_icon="💾",
+    page_icon="./images/logo.png",
     layout="wide",
     initial_sidebar_state="collapsed")
 
