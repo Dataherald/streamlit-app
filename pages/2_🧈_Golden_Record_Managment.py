@@ -145,21 +145,40 @@ with st.form("Golden records"):
 
 with st.form("View golden records"):
     st.subheader("View golden records")
-    page = st.number_input("Page", value=1)
-    limit = st.slider("Limit", min_value=1, max_value=20, value=10)
+    golden_records = get_golden_records()
+    st.write(f"Total golden records: {len(golden_records)}")
+    search_query = st.text_input("Search by question or SQL query", "")
+    page = st.number_input("Page",
+                            value=1,
+                            min_value=1
+                        )
+    limit = st.number_input("Limit",
+                            min_value=1,
+                            max_value=len(golden_records),
+                            value=10,
+                        )
     if st.form_submit_button("View"):
         with st.spinner("Loading golden records..."):
-            golden_records = get_golden_records()
-            df = pd.DataFrame(golden_records)
-            try:
-                df = df[df['db_connection_id'] == st.session_state["connection_id"]]
-            except KeyError:
-                st.warning("Please select a database connection.")
-            df = df.iloc[(page-1)*limit:page*limit]
-            df.drop(columns=["db_connection_id"], inplace=True)
-            df.reset_index(drop=True, inplace=True)
-            if golden_records:
-                st.dataframe(df)
+            if search_query:
+                golden_records = [
+                    record
+                    for record in golden_records
+                    if search_query.lower() in record["question"].lower()
+                    or search_query.lower() in record["sql_query"].lower()
+                ]
+            if len(golden_records) > 0:
+                df = pd.DataFrame(golden_records)
+                try:
+                    df = df[df['db_connection_id'] == st.session_state["connection_id"]]
+                except KeyError:
+                    st.warning("Please select a database connection.")
+                df = df.iloc[(page-1)*limit:page*limit]
+                df.drop(columns=["db_connection_id"], inplace=True)
+                df.reset_index(drop=True, inplace=True)
+                if golden_records:
+                    st.dataframe(df)
+                else:
+                    st.warning("No golden records found.")
             else:
                 st.warning("No golden records found.")
 
