@@ -1,44 +1,35 @@
 import streamlit as st
 import requests
-import json
 import pandas as pd
 
-
-def get_all_database_connections():
-    api_url = HOST + '/api/v1/database-connections'
+def get_all_database_connections(api_url):
     try:
         response = requests.get(api_url)
         if response.status_code == 200:
             data = response.json()
-            aliases = {}
-            for entry in data:
-                aliases[entry["alias"]] = entry["id"]
-            return aliases
+            return {entry["alias"]: entry["id"] for entry in data}
         else:
-            st.warning("Could not get database connections. ")
+            st.warning("Could not get database connections.")
             return {}
-    except requests.exceptions.ConnectionError:
+    except requests.exceptions.RequestException:
         st.error("Connection failed.")
         return {}
-    
-def scan_database(db_connection_id, table_names):
-    api_url = HOST + '/api/v1/table-descriptions/scan'
+
+def scan_database(api_url, db_connection_id, table_name):
     payload = {
         "db_connection_id": db_connection_id,
-        "table_names": [table_names]
+        "table_names": [table_name]
     }
     try:
-        response = requests.post(api_url, data=json.dumps(payload))
+        response = requests.post(api_url, json=payload)
         if response.status_code == 200:
             st.success("Table scanned.")
         else:
-           st.warning(f"Could not scan tables. {response.text}")
+            st.warning(f"Could not scan tables. {response.text}")
     except requests.exceptions.RequestException:
         st.error("Connection failed.")
 
-def list_table_descriptions(db_connection_id): 
-    api_url = HOST + '/api/v1/table-descriptions'
-
+def list_table_descriptions(api_url, db_connection_id):
     params = {
         'db_connection_id': db_connection_id,
     }
@@ -59,12 +50,14 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed")
 
-HOST = st.session_state["HOST"]
+HOST = st.session_state.get("HOST", "")
 
-st.title("🗃️ Database Informaton")
+st.title("🗃️ Database Information")
+api_url = f"{HOST}/api/v1"
+
 with st.form("Scan tables"):
     st.header("Scan tables")
-    database_connections = get_all_database_connections()
+    database_connections = get_all_database_connections(f"{api_url}/database-connections")  # noqa: E501
     database_connection = st.selectbox(
         "Choose a database connection",
         database_connections.keys())
@@ -72,32 +65,30 @@ with st.form("Scan tables"):
     if st.form_submit_button("Scan table"):
         if table_name:
             with st.spinner("Scanning table..."):
-                scan_database(
-                    database_connections[database_connection],
-                    table_name)
+                scan_database(f"{api_url}/table-descriptions/scan", database_connections[database_connection], table_name)  # noqa: E501
         else:
             st.warning("Please provide a table name.")
 
 with st.form("View scanned tables"):
     st.header("View scanned tables")
-    database_connections = get_all_database_connections()
+    database_connections = get_all_database_connections(f"{api_url}/database-connections")  # noqa: E501
     database_connection = st.selectbox(
         "Available Database connections",
         database_connections.keys())
-    if st.form_submit_button("show tables"):
-        table_descriptions = list_table_descriptions(
-            database_connections[database_connection])
+    if st.form_submit_button("Show tables"):
+        table_descriptions = list_table_descriptions(f"{api_url}/table-descriptions", database_connections[database_connection])  # noqa: E501
         st.markdown("### List of Tables")
-        table_info = []
-        for table_description in table_descriptions:
-            table_info.append([
-                table_description['table_name'],
-                table_description['description'],
-                len(table_description['columns']),
-                ])
-        df = pd.DataFrame(
-            table_info,
-            columns=['Table name', 'Description', 'Number of Columns'])
-        st.table(df)
-    
-    
+        if table_descriptions:
+            table_info = []
+            for table_description in table_descriptions:
+                table_info.append([
+                    table_description['table_name'],
+                    table_description['description'],
+                    len(table_description['columns']),
+                    ])
+            df = pd.DataFrame(
+                table_info,
+                columns=['Table name', 'Description', 'Number of Columns'])
+            st.table(df)
+        else:
+            st.warning("No table descriptions available.")

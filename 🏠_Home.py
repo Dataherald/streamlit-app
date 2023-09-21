@@ -1,5 +1,4 @@
 import requests
-import json
 import streamlit as st
 import time
 import pandas as pd
@@ -9,72 +8,49 @@ from PIL import Image
 from pathlib import Path
 from clear_results import with_clear_container
 
-
 LOGO_PATH = Path(__file__).parent / "images" / "logo.png"
 
-def get_all_database_connections():
-    api_url = HOST + '/api/v1/database-connections'
+def get_all_database_connections(api_url):
     try:
         response = requests.get(api_url)
-        if response.status_code == 200:
-            data = response.json()
-            aliases = {}
-            for entry in data:
-                aliases[entry["alias"]] = entry["id"]
-            return aliases
-        else:
-            st.warning("Could not get database connections.")
-            return {}
-    except requests.exceptions.ConnectionError:
+        response_data = response.json()
+        return {entry["alias"]: entry["id"] for entry in response_data} if response.status_code == 200 else {}  # noqa: E501
+    except requests.exceptions.RequestException:
         return {}
 
-def add_database_connection(connection_data):
-    api_url = HOST + '/api/v1/database-connections'
-    data_json = json.dumps(connection_data)
+def add_database_connection(api_url, connection_data):
     try:
-        response = requests.post(api_url, data=data_json)
-        if response.status_code == 200:
-            response_data = response.json()
-            return response_data
-        else:
-            st.warning("Could not add database connection.")
-            return None
+        response = requests.post(api_url, json=connection_data)
+        return response.json() if response.status_code == 200 else None
     except requests.exceptions.RequestException:
         return None
-    
-def answer_question(db_connection_id, question):
-    api_url = f'{HOST}/api/v1/question'
+
+def answer_question(api_url, db_connection_id, question):
     request_body = {
         "db_connection_id": db_connection_id,
         "question": question
     }
     try:
         response = requests.post(api_url, json=request_body)
-        if response.status_code == 200:
-            response_data = response.json()
-            return response_data
-        else:
-            st.warning(f"Could not answer question because {response.text}.")
-            return {}
+        return response.json() if response.status_code == 200 else {}
     except requests.exceptions.RequestException as e:
         st.error(f"Connection failed due to {e}.")
         return {}
 
 def load_image(LOGO_PATH):
-    img =  Image.open(LOGO_PATH)
-    return img
+    return Image.open(LOGO_PATH)
 
-def type_text(text, answer_container):
+def type_text(text):
     text = text.strip()
-    answer_container =  st.empty()
+    answer_container = st.empty()
     for i in range(len(text) + 1):
         answer_container.markdown(text[0:i])
         time.sleep(0.02)
     st.divider()
 
-def type_code(text, answer_container):
+def type_code(text):
     text = text.strip()
-    answer_container =  st.empty()
+    answer_container = st.empty()
     for i in range(len(text) + 1):
         answer_container.code(text[0:i], language="sql")
         time.sleep(0.02)
@@ -88,17 +64,13 @@ def json_to_dataframe(json_data):
     df = pd.DataFrame(rows, columns=columns)
     return df
 
-def test_connection():
+def test_connection(url):
     try:
-        url = HOST + '/api/v1/heartbeat'
         response = requests.get(url)
-        if response.status_code == 200:
-            return True
-        else:
-            return False
-    except requests.exceptions.ConnectionError:
+        return response.status_code == 200
+    except requests.exceptions.RequestException:
         return False
-    
+
 def create_button_link(text, url):
     button_clicked = st.sidebar.button(text)
     if button_clicked:
@@ -118,18 +90,16 @@ st.sidebar.subheader("Connect to the engine")
 HOST = st.sidebar.text_input("Engine URI", value="http://localhost")
 st.session_state["HOST"] = HOST
 if st.sidebar.button("Connect"):
-    try:
-        url = HOST + '/api/v1/heartbeat'
-        response = requests.get(url)
-        if response.status_code == 200:
-            st.sidebar.success("Connected to engine.")
-    except requests.exceptions.ConnectionError:
+    url = HOST + '/api/v1/heartbeat'
+    if test_connection(url):
+        st.sidebar.success("Connected to engine.")
+    else:
         st.sidebar.error("Connection failed.")
 
 # Setup main page
 st.image("images/dataherald.png", use_column_width=True)
 
-if not test_connection():
+if not test_connection(HOST + '/api/v1/heartbeat'):
     st.error("Could not connect to engine. Please connect to the engine on the left sidebar.")  # noqa: E501
     st.stop()
 else:
@@ -138,7 +108,7 @@ else:
 current_database = ""
 with st.form("database_connection"):
     st.subheader("Connect to an existing database:")
-    database_connections = get_all_database_connections()
+    database_connections = get_all_database_connections(HOST + '/api/v1/database-connections')  # noqa: E501
     database_connection = st.selectbox("Database", database_connections.keys())
     connect = st.form_submit_button("Connect to database")
     if connect:
@@ -155,23 +125,21 @@ if with_clear_container(submit_clicked):
     output_container.chat_message("user").write(user_input)
     answer_container = output_container.chat_message("assistant")
     introduction = ":wave: Hello. Please, give me a few moments and I'll be back with your answer."  # noqa: E501
-    type_text(introduction, answer_container)
+    type_text(introduction)
     with st.spinner("Thinking..."):
         try:
-            answer = answer_question(
-                st.session_state["database_connection_id"],
-                user_input)  
+            answer = answer_question(HOST + '/api/v1/question', st.session_state["database_connection_id"], user_input)  # noqa: E501
         except KeyError:
             st.error("Please connect to a database first.")
             st.stop()
     try:
         results_from_db = json_to_dataframe(answer["sql_query_result"])
         answer_container.dataframe(results_from_db)
-        type_code(answer['sql_query'], answer_container)
+        type_code(answer['sql_query'])
         confidence = f"📊 Confidence: {answer['confidence_score']}"
-        type_text(confidence, answer_container)
+        type_text(confidence)
         nl_answer = f"🤔 Agent response: {answer['nl_response']}"
-        type_text(nl_answer, answer_container)
+        type_text(nl_answer)
     except KeyError:
         st.error("Please connect to a correct database first.")
         st.stop()
