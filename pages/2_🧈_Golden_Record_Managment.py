@@ -90,10 +90,10 @@ with st.form("Databases"):
     db_connection = st.selectbox(
         "Database connection",
         options=list(database_connections.keys()))
-    st.session_state["connection_id"] = database_connections[db_connection]
-    connection_id = database_connections[db_connection]
     if st.form_submit_button("Select"):
         st.success(f"Connected to {db_connection}.")
+        st.session_state["connection_id"] = database_connections[db_connection]
+        connection_id = database_connections[db_connection]
 
 with st.form("Golden records"):
     add_or_upload = st.radio(
@@ -148,15 +148,14 @@ with st.form("View golden records"):
     golden_records = get_golden_records()
     st.write(f"Total golden records: {len(golden_records)}")
     search_query = st.text_input("Search by question or SQL query", "")
-    default_limit_value = min(10, len(golden_records))
     page = st.number_input("Page",
                             value=1,
                             min_value=1
                         )
     limit = st.number_input("Limit",
-                            min_value=0,
+                            min_value=1,
                             max_value=len(golden_records),
-                            value=default_limit_value,
+                            value=10,
                         )
     if st.form_submit_button("View"):
         with st.spinner("Loading golden records..."):

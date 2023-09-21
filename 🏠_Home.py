@@ -4,6 +4,7 @@ import time
 import pandas as pd
 import webbrowser
 
+from PIL import Image
 from pathlib import Path
 from clear_results import with_clear_container
 
@@ -35,6 +36,9 @@ def answer_question(api_url, db_connection_id, question):
     except requests.exceptions.RequestException as e:
         st.error(f"Connection failed due to {e}.")
         return {}
+
+def load_image(LOGO_PATH):
+    return Image.open(LOGO_PATH)
 
 def type_text(text):
     text = text.strip()
@@ -83,7 +87,7 @@ st.sidebar.write("Query your structured database in natural language.")
 st.sidebar.write("Enable business users to get answers to ad hoc data questions in seconds.")  # noqa: E501
 create_button_link("Visit our website", "https://www.dataherald.com/")
 st.sidebar.subheader("Connect to the engine")
-HOST = st.sidebar.text_input("Engine URI", value="http://streamlit_engine.dataherald.ai")
+HOST = st.sidebar.text_input("Engine URI", value="http://localhost")
 st.session_state["HOST"] = HOST
 if st.sidebar.button("Connect"):
     url = HOST + '/api/v1/heartbeat'
