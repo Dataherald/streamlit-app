@@ -1,4 +1,2 @@
-streamlit
-request
-pandas
-re
+streamlit==1.26.0
+pandas==1.5.3
