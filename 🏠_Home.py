@@ -81,7 +81,8 @@ st.set_page_config(
 st.sidebar.title("Dataherald")
 st.sidebar.write("Query your structured database in natural language.")
 st.sidebar.write("Enable business users to get answers to ad hoc data questions in seconds.")  # noqa: E501
-create_button_link("Visit our website", "https://www.dataherald.com/")
+link = '[Visit our website](https://www.dataherald.com/)'
+st.sidebar.markdown(link, unsafe_allow_html=True)
 st.sidebar.subheader("Connect to the engine")
 HOST = st.sidebar.text_input("Engine URI", value="http://streamlit_engine.dataherald.ai")
 st.session_state["HOST"] = HOST
@@ -107,9 +108,9 @@ with st.form("database_connection"):
     database_connections = get_all_database_connections(HOST + '/api/v1/database-connections')  # noqa: E501
     database_connection = st.selectbox("Database", database_connections.keys())
     connect = st.form_submit_button("Connect to database")
+    st.session_state["database_connection_id"] = database_connections[database_connection]  # noqa: E501
     if connect:
         st.success(f"Connected to {database_connection}.")
-        st.session_state["database_connection_id"] = database_connections[database_connection]  # noqa: E501
 
 with st.form(key="form"):
     user_input = st.text_input("Ask your question")
