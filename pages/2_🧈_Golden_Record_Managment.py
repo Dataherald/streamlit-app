@@ -30,7 +30,6 @@ def add_golden_records(data):
         
         if response.status_code == 201:
             st.success("Golden record(s) added successfully.")
-            st.session_state["connection_id"] = None
             return True
         else:
             st.warning(f"Could not add golden records because {response.text}.")
@@ -72,6 +71,12 @@ def delete_golden_record(golden_record_id):
         st.error(f"Connection failed due to {e}.")
         return False
 
+def find_key_by_value(dictionary, target_value):
+    for key, value in dictionary.items():
+        if value == target_value:
+            return key
+    return None
+
 st.set_page_config(
     page_title="Dataherald",
     page_icon="./images/logo.png",
@@ -81,21 +86,12 @@ st.set_page_config(
 HOST = st.session_state["HOST"]
 
 st.title("🧈 Golden Record Management")
-
-with st.form("Databases"):
-    st.info("Select a database connection to add or delete golden records.")
-    db_connection_id = None
-    st.subheader("Choose database connection")
-    database_connections = get_all_database_connections()
-    db_connection = st.selectbox(
-        "Database connection",
-        options=list(database_connections.keys()))
-    st.session_state["connection_id"] = database_connections[db_connection]
-    connection_id = database_connections[db_connection]
-    if st.form_submit_button("Select"):
-        st.success(f"Connected to {db_connection}.")
+database_connections = get_all_database_connections()
+db_name = find_key_by_value(database_connections, st.session_state["database_connection_id"])  # noqa: E501
+st.info(f"You are connected to {db_name}. Change the database connection from the Database Information page.")  # noqa: E501
 
 with st.form("Golden records"):
+    st.info("Here you can add or upload golden records. Golden records are used to improve the accuracy of the engine.")  # noqa: E501
     add_or_upload = st.radio(
         "Add or upload golden records",
         ("Add", "Upload"))
@@ -112,7 +108,7 @@ with st.form("Golden records"):
             with st.spinner("Adding golden record..."):
                 try:
                     data = {
-                        "db_connection_id": st.session_state["connection_id"],
+                        "db_connection_id": st.session_state["database_connection_id"],
                         "question": question,
                         "sql_query": sql_query
                     }
@@ -128,7 +124,7 @@ with st.form("Golden records"):
                             line_data = json.loads(line.decode("utf-8").strip())  
                             if "question" in line_data and "sql_query" in line_data:
                                 uploaded_data.append({
-                                    "db_connection_id": st.session_state["connection_id"],  # noqa: E501
+                                    "db_connection_id": st.session_state["database_connection_id"],  # noqa: E501
                                     "question": line_data["question"],
                                     "sql_query": line_data["sql_query"]
                                 })
@@ -170,7 +166,7 @@ with st.form("View golden records"):
             if len(golden_records) > 0:
                 df = pd.DataFrame(golden_records)
                 try:
-                    df = df[df['db_connection_id'] == st.session_state["connection_id"]]
+                    df = df[df['db_connection_id'] == st.session_state["database_connection_id"]]  # noqa: E501
                 except KeyError:
                     st.warning("Please select a database connection.")
                 df = df.iloc[(page-1)*limit:page*limit]
@@ -185,6 +181,7 @@ with st.form("View golden records"):
 
 with st.form("Delete golden record"):
     st.subheader("Delete golden record")
+    st.info("Here you can delete a golden record by providing the golden record ID.")  # noqa: E501
     golden_record_id = st.text_input("Golden record ID")
     if st.form_submit_button("Delete"):
         if golden_record_id:

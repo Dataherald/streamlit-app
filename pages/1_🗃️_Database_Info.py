@@ -55,8 +55,19 @@ HOST = st.session_state.get("HOST", "")
 st.title("🗃️ Database Information")
 api_url = f"{HOST}/api/v1"
 
+with st.form("database_connection"):
+    st.subheader("Connect to an existing database:")
+    database_connections = get_all_database_connections(HOST + '/api/v1/database-connections')  # noqa: E501
+    database_connection = st.selectbox("Database", database_connections.keys())
+    connect = st.form_submit_button("Connect to database")
+    if connect:
+        st.session_state["database_connection_id"] = database_connections[database_connection]  # noqa: E501
+        st.success(f"Connected to {database_connection}.")
+
 with st.form("Scan tables"):
     st.header("Scan tables")
+    st.info("Here you can scan a table within a database to extract information from the given table.")  # noqa: E501
+    st.warning("Please note that only scanned tables are used by the agent")
     database_connections = get_all_database_connections(f"{api_url}/database-connections")  # noqa: E501
     database_connection = st.selectbox(
         "Choose a database connection",
@@ -71,6 +82,7 @@ with st.form("Scan tables"):
 
 with st.form("View scanned tables"):
     st.header("View scanned tables")
+    st.info("In this section you can view the tables that have been scanned.")
     database_connections = get_all_database_connections(f"{api_url}/database-connections")  # noqa: E501
     database_connection = st.selectbox(
         "Available Database connections",
