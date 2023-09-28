@@ -14,7 +14,6 @@ import webbrowser
 import threading
 
 from pathlib import Path
-from clear_results import with_clear_container
 
 LOGO_PATH = Path(__file__).parent / "images" / "logo.png"
 DEFAULT_DATABASE = "Redfin"
