@@ -1,14 +1,33 @@
 import requests
 import streamlit as st
 import time
+import random
+from langchain.chat_models import ChatOpenAI
+from langchain.chains import LLMChain
+from langchain.prompts.chat import (
+    ChatPromptTemplate,
+    HumanMessagePromptTemplate,
+    SystemMessagePromptTemplate,
+)
 import pandas as pd
 import webbrowser
+import threading
 
 from pathlib import Path
 from clear_results import with_clear_container
 
 LOGO_PATH = Path(__file__).parent / "images" / "logo.png"
 DEFAULT_DATABASE = "Redfin"
+ANSWER = ""
+
+SYSTEM_TEMPLATE = """ Given a input sentence, paraphrase the sentence.
+be friendly and include emojis in your response.
+"""
+
+HUMAN_TEMPLATE = """
+sentence: {input}
+Paraphrased version:
+"""
 
 def get_all_database_connections(api_url):
     try:
@@ -37,12 +56,12 @@ def answer_question(api_url, db_connection_id, question):
         st.error(f"Connection failed due to {e}.")
         return {}
 
-def type_text(text):
+def type_text(text, type_speed=0.02):
     text = text.strip()
     answer_container = st.empty()
     for i in range(len(text) + 1):
         answer_container.markdown(text[0:i])
-        time.sleep(0.02)
+        time.sleep(type_speed)
     st.divider()
 
 def type_code(text):
@@ -79,6 +98,43 @@ def find_key_by_value(dictionary, target_value):
             return key
     return None
 
+def run_answer_question(api_url, db_connection_id, user_input):
+    try:
+        answer = answer_question(api_url, db_connection_id, user_input)
+        global ANSWER
+        ANSWER = answer
+    except KeyError:
+        st.error("Please connect to a database first.")
+        st.stop()
+
+@st.cache_resource
+def load_chain():
+    llm = ChatOpenAI(openai_api_key=st.secrets['OPENAI_API_KEY'])
+    system_message_prompt = SystemMessagePromptTemplate.from_template(SYSTEM_TEMPLATE)
+    human_message_prompt = HumanMessagePromptTemplate.from_template(HUMAN_TEMPLATE)
+    chat_prompt = ChatPromptTemplate.from_messages(
+                [system_message_prompt, human_message_prompt]
+    )
+    chain = LLMChain(llm=llm, prompt=chat_prompt)
+    return chain
+
+def paraphrase_text(chain, input: str) -> str:
+    response = chain.run(
+        input=input
+    )
+    return response
+
+
+WAITING_TIME_TEXTS = [
+    ":wave: Hello. Please, give me a few moments and I'll be back with your answer. Next you can see the steps I'm taking to answer your question.",  # noqa: E501
+    "🔎 Finding few-shot examples from vector store based on similarity of the golden records to the question",  # noqa: E501,
+    "📚 Finding the relevant tables based on the similarity of the question and the schema of the tables in Database",  # noqa: E501
+    "🤔 Finding the relevant columns of the tables chosen in the previous step",
+    "✨ Filtering the columns by gathering more information from the scanned tables",
+    "💭 Locating the entities in the columns",
+    "💡 Generating the SQL query based on previous steps",
+]
+
 st.set_page_config(
     page_title="Dataherald",
     page_icon="./images/logo.png",
@@ -102,7 +158,7 @@ if st.sidebar.button("Connect"):
 
 # Setup main page
 st.image("images/dataherald.png", width=500)
-
+chain = load_chain()
 if not test_connection(HOST + '/api/v1/heartbeat'):
     st.error("Could not connect to engine. Please connect to the engine on the left sidebar.")  # noqa: E501
     st.stop()
@@ -122,21 +178,20 @@ if with_clear_container(submit_clicked):
     output_container = output_container.container()
     output_container.chat_message("user").write(user_input)
     answer_container = output_container.chat_message("assistant")
-    introduction = ":wave: Hello. Please, give me a few moments and I'll be back with your answer."  # noqa: E501
-    type_text(introduction)
-    with st.spinner("Thinking..."):
-        try:
-            answer = answer_question(HOST + '/api/v1/question', st.session_state["database_connection_id"], user_input)  # noqa: E501
-        except KeyError:
-            st.error("Please connect to a database first.")
-            st.stop()
+    answer_thread = threading.Thread(target=run_answer_question, args=(HOST + '/api/v1/question', st.session_state["database_connection_id"], user_input))  # noqa: E501
+    answer_thread.start()
+    for text in WAITING_TIME_TEXTS:
+        random_number = random.uniform(0.05, 0.08)
+        type_text(paraphrase_text(chain, text), type_speed=random_number)
+    with st.spinner("Finalizing answer..."):
+        answer_thread.join()
     try:
-        results_from_db = json_to_dataframe(answer["sql_query_result"])
+        results_from_db = json_to_dataframe(ANSWER["sql_query_result"])
         answer_container.dataframe(results_from_db)
-        type_code(answer['sql_query'])
-        confidence = f"📊 Confidence: {answer['confidence_score']}"
+        type_code(ANSWER['sql_query'])
+        confidence = f"📊 Confidence: {ANSWER['confidence_score']}"
         type_text(confidence)
-        nl_answer = f"🤔 Agent response: {answer['nl_response']}"
+        nl_answer = f"🤔 Agent response: {ANSWER['nl_response']}"
         type_text(nl_answer)
     except KeyError:
         st.error("Please connect to a correct database first.")
