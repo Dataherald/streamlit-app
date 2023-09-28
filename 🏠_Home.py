@@ -109,7 +109,8 @@ def run_answer_question(api_url, db_connection_id, user_input):
 
 @st.cache_resource
 def load_chain():
-    llm = ChatOpenAI(openai_api_key=st.secrets['OPENAI_API_KEY'])
+    # llm = ChatOpenAI(openai_api_key=st.secrets['OPENAI_API_KEY'])
+    llm = ChatOpenAI(openai_api_key="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")
     system_message_prompt = SystemMessagePromptTemplate.from_template(SYSTEM_TEMPLATE)
     human_message_prompt = HumanMessagePromptTemplate.from_template(HUMAN_TEMPLATE)
     chat_prompt = ChatPromptTemplate.from_messages(
@@ -132,6 +133,7 @@ WAITING_TIME_TEXTS = [
     "🤔 Finding the relevant columns of the tables chosen in the previous step",
     "✨ Filtering the columns by gathering more information from the scanned tables",
     "💭 Locating the entities in the columns",
+    "🔍 Retrieving the instructions before generating the SQL query",
     "💡 Generating the SQL query based on previous steps",
 ]
 
@@ -169,13 +171,10 @@ else:
     db_name = find_key_by_value(database_connections, st.session_state["database_connection_id"])  # noqa: E501
     st.info(f"You are connected to {db_name}. Change the database connection from the Database Information page.")  # noqa: E501
 
-with st.form(key="form"):
-    user_input = st.text_input("Ask your question")
-    submit_clicked = st.form_submit_button("Submit Question")
-
 output_container = st.empty()
-if with_clear_container(submit_clicked):
-    output_container = output_container.container()
+user_input = st.chat_input("Ask your question")
+output_container = output_container.container()
+if user_input:
     output_container.chat_message("user").write(user_input)
     answer_container = output_container.chat_message("assistant")
     answer_thread = threading.Thread(target=run_answer_question, args=(HOST + '/api/v1/question', st.session_state["database_connection_id"], user_input))  # noqa: E501
@@ -188,7 +187,9 @@ if with_clear_container(submit_clicked):
     try:
         results_from_db = json_to_dataframe(ANSWER["sql_query_result"])
         results_from_db.columns = [f"{i}_{col}" for i, col in enumerate(results_from_db.columns)]  # noqa: E501
+        answer_container = st.empty()
         answer_container.dataframe(results_from_db)
+        st.divider()
         type_code(ANSWER['sql_query'])
         confidence = f"📊 Confidence: {ANSWER['confidence_score']}"
         type_text(confidence)
