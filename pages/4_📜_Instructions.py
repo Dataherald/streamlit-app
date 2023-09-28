@@ -28,7 +28,7 @@ def add_instruction(api_url, db_connection_id, instruction):
     try:
         response = requests.post(api_url, json=request_body)
 
-        if response.status_code == 200:
+        if response.status_code == 201:
             return response.json()
         else:
             st.error(f"Failed to add instruction. Status code: {response.status_code}")
@@ -119,8 +119,6 @@ with st.form("add_instruction"):
         instruction = add_instruction(api_url, st.session_state["database_connection_id"], instruction)
         if instruction:
             st.success("Instruction added successfully.")
-        else:
-            st.warning("Could not add instruction.")
 
 with st.form("View all instructions"):
     st.subheader("View all instructions:")
@@ -128,9 +126,9 @@ with st.form("View all instructions"):
         instructions = get_instructions(f'{HOST}/api/v1/instructions', st.session_state["database_connection_id"])
         if instructions:
             for instruction in instructions:
-                st.write(instruction["instruction"])
+                st.table(instruction)
         else:
-            st.warning("Could not retrieve instructions.")
+            st.warning("No instructions found.")
 
 with st.form("Update instruction"):
     st.subheader("Update an instruction:")
