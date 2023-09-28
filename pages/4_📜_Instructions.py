@@ -107,7 +107,7 @@ st.set_page_config(
 HOST = st.session_state["HOST"]
 
 
-st.title("🧈 Golden Record Management")
+st.title("📜 Instructions")
 database_connections = get_all_database_connections()
 db_name = find_key_by_value(database_connections, st.session_state["database_connection_id"])  # noqa: E501
 st.info(f"You are connected to {db_name}. Change the database connection from the Database Information page.")  # noqa: E501
