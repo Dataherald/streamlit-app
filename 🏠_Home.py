@@ -187,6 +187,7 @@ if with_clear_container(submit_clicked):
         answer_thread.join()
     try:
         results_from_db = json_to_dataframe(ANSWER["sql_query_result"])
+        results_from_db.columns = [f"{i}_{col}" for i, col in enumerate(results_from_db.columns)]  # noqa: E501
         answer_container.dataframe(results_from_db)
         type_code(ANSWER['sql_query'])
         confidence = f"📊 Confidence: {ANSWER['confidence_score']}"
