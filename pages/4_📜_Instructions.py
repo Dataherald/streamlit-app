@@ -124,12 +124,13 @@ with st.form("add_instruction"):
 
 with st.form("View all instructions"):
     st.subheader("View all instructions:")
-    instructions = get_instructions(f'{HOST}/api/v1/instructions', st.session_state["database_connection_id"])
-    if instructions:
-        for instruction in instructions:
-            st.write(instruction["instruction"])
-    else:
-        st.warning("Could not retrieve instructions.")
+    if st.form_submit_button("View"):
+        instructions = get_instructions(f'{HOST}/api/v1/instructions', st.session_state["database_connection_id"])
+        if instructions:
+            for instruction in instructions:
+                st.write(instruction["instruction"])
+        else:
+            st.warning("Could not retrieve instructions.")
 
 with st.form("Update instruction"):
     st.subheader("Update an instruction:")
