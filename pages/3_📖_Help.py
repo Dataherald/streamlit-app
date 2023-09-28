@@ -75,6 +75,11 @@ with st.container():
     st.write("Whether you want to scan all the tables in your database or specify particular ones, this functionality is designed to streamline the process for you.")
 
 with st.container():
+    st.title("Instructions 📜")
+    st.write("The Instructions feature allows you to add instructions to the SQL Agent, which will be used to generate answers to your queries.")
+    st.write("You can add, delete, and update instructions as you see fit, ensuring that the SQL Agent is always up-to-date with your business needs.")
+
+with st.container():
     st.title("Roadmap 🚀")
     st.write("Our future plans include the following key features:")
     st.write("1. **Custom App Descriptions:** We are working on a feature that will allow you to add custom descriptions for this app, making it more tailored to your needs.")
