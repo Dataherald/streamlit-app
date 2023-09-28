@@ -109,8 +109,7 @@ def run_answer_question(api_url, db_connection_id, user_input):
 
 @st.cache_resource
 def load_chain():
-    # llm = ChatOpenAI(openai_api_key=st.secrets['OPENAI_API_KEY'])
-    llm = ChatOpenAI(openai_api_key="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")
+    llm = ChatOpenAI(openai_api_key=st.secrets['OPENAI_API_KEY'])
     system_message_prompt = SystemMessagePromptTemplate.from_template(SYSTEM_TEMPLATE)
     human_message_prompt = HumanMessagePromptTemplate.from_template(HUMAN_TEMPLATE)
     chat_prompt = ChatPromptTemplate.from_messages(
