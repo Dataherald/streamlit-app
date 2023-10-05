@@ -2,13 +2,6 @@ import requests
 import streamlit as st
 import time
 import random
-from langchain.chat_models import ChatOpenAI
-from langchain.chains import LLMChain
-from langchain.prompts.chat import (
-    ChatPromptTemplate,
-    HumanMessagePromptTemplate,
-    SystemMessagePromptTemplate,
-)
 import pandas as pd
 import webbrowser
 import threading
@@ -18,15 +11,6 @@ from pathlib import Path
 LOGO_PATH = Path(__file__).parent / "images" / "logo.png"
 DEFAULT_DATABASE = "Redfin"
 ANSWER = ""
-
-SYSTEM_TEMPLATE = """ Given a input sentence, paraphrase the sentence.
-be friendly and include emojis in your response.
-"""
-
-HUMAN_TEMPLATE = """
-sentence: {input}
-Paraphrased version:
-"""
 
 def get_all_database_connections(api_url):
     try:
@@ -106,23 +90,6 @@ def run_answer_question(api_url, db_connection_id, user_input):
         st.error("Please connect to a database first.")
         st.stop()
 
-@st.cache_resource
-def load_chain():
-    llm = ChatOpenAI(openai_api_key=st.secrets['OPENAI_API_KEY'])
-    system_message_prompt = SystemMessagePromptTemplate.from_template(SYSTEM_TEMPLATE)
-    human_message_prompt = HumanMessagePromptTemplate.from_template(HUMAN_TEMPLATE)
-    chat_prompt = ChatPromptTemplate.from_messages(
-                [system_message_prompt, human_message_prompt]
-    )
-    chain = LLMChain(llm=llm, prompt=chat_prompt)
-    return chain
-
-def paraphrase_text(chain, input: str) -> str:
-    response = chain.run(
-        input=input
-    )
-    return response
-
 
 WAITING_TIME_TEXTS = [
     ":wave: Hello. Please, give me a few moments and I'll be back with your answer. Next you can see the steps I'm taking to answer your question.",  # noqa: E501
@@ -158,7 +125,6 @@ if st.sidebar.button("Connect"):
 
 # Setup main page
 st.image("images/dataherald.png", width=500)
-chain = load_chain()
 if not test_connection(HOST + '/api/v1/heartbeat'):
     st.error("Could not connect to engine. Please connect to the engine on the left sidebar.")  # noqa: E501
     st.stop()
@@ -178,8 +144,8 @@ if user_input:
     answer_thread = threading.Thread(target=run_answer_question, args=(HOST + '/api/v1/question', st.session_state["database_connection_id"], user_input))  # noqa: E501
     answer_thread.start()
     for text in WAITING_TIME_TEXTS:
-        random_number = random.uniform(0.05, 0.08)
-        type_text(paraphrase_text(chain, text), type_speed=random_number)
+        random_number = random.uniform(0.06, 0.09)
+        type_text(text, type_speed=random_number)
     with st.spinner("Finalizing answer..."):
         answer_thread.join()
     try:
