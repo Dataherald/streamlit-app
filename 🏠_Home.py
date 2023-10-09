@@ -9,7 +9,7 @@ import threading
 from pathlib import Path
 
 LOGO_PATH = Path(__file__).parent / "images" / "logo.png"
-DEFAULT_DATABASE = "Redfin"
+DEFAULT_DATABASE = "RealEstate"
 ANSWER = ""
 
 def get_all_database_connections(api_url):
