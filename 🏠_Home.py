@@ -165,7 +165,7 @@ if user_input:
         type_code(ANSWER['sql_query'])
         confidence = f"📊 Confidence: {ANSWER['confidence_score']}"
         type_text(confidence)
-        nl_answer = f"🤔 Agent response: {ANSWER['nl_response']}"
+        nl_answer = f"🤔 Agent response: {ANSWER['response']}"
         type_text(nl_answer)
     except KeyError:
         st.error("Please connect to a correct database first.")
