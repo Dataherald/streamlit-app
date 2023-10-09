@@ -102,6 +102,14 @@ WAITING_TIME_TEXTS = [
     "💡 Generating the SQL query based on previous steps",
 ]
 
+INTRODUCTION_TEXT = """
+This app is a proof of concept using the Dataherald NL-2-SQL engine using a streamlit front-end and a dataset of US real estate data.
+The data available includes: rents, sales prices, listing prices, price per square foot, number of homes sold, inventory and number of pending sales up to June 2023.
+"""  # noqa: E501
+INTRO_EXAMPLE = """
+A sample question you can ask is: Did property prices increase or descrease in the US in 2020?
+"""
+
 st.set_page_config(
     page_title="Dataherald",
     page_icon="./images/logo.png",
@@ -111,8 +119,7 @@ st.set_page_config(
 st.sidebar.title("Dataherald")
 st.sidebar.write("Query your structured database in natural language.")
 st.sidebar.write("Enable business users to get answers to ad hoc data questions in seconds.")  # noqa: E501
-link = '[Visit our website](https://www.dataherald.com/)'
-st.sidebar.markdown(link, unsafe_allow_html=True)
+st.sidebar.link_button("Visit our website", "https://www.dataherald.com/")
 st.sidebar.subheader("Connect to the engine")
 HOST = st.sidebar.text_input("Engine URI", value="http://streamlit_engine.dataherald.ai")
 st.session_state["HOST"] = HOST
@@ -133,7 +140,8 @@ else:
     if st.session_state.get("database_connection_id", None) is None:
         st.session_state["database_connection_id"] = database_connections[DEFAULT_DATABASE]  # noqa: E501
     db_name = find_key_by_value(database_connections, st.session_state["database_connection_id"])  # noqa: E501
-    st.info(f"You are connected to {db_name}. Change the database connection from the Database Information page.")  # noqa: E501
+    st.info(INTRODUCTION_TEXT)  # noqa: E501
+    st.info(INTRO_EXAMPLE)
 
 output_container = st.empty()
 user_input = st.chat_input("Ask your question")
