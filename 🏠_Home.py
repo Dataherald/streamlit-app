@@ -149,7 +149,7 @@ output_container = output_container.container()
 if user_input:
     output_container.chat_message("user").write(user_input)
     answer_container = output_container.chat_message("assistant")
-    answer_thread = threading.Thread(target=run_answer_question, args=(HOST + '/api/v1/question', st.session_state["database_connection_id"], user_input))  # noqa: E501
+    answer_thread = threading.Thread(target=run_answer_question, args=(HOST + '/api/v1/questions', st.session_state["database_connection_id"], user_input))  # noqa: E501
     answer_thread.start()
     for text in WAITING_TIME_TEXTS:
         random_number = random.uniform(0.06, 0.09)
