@@ -88,7 +88,8 @@ with st.form("View scanned tables"):
         "Available Database connections",
         database_connections.keys())
     if st.form_submit_button("Show tables"):
-        table_descriptions = list_table_descriptions(f"{api_url}/table-descriptions", database_connections[database_connection])  # noqa: E501
+        with st.spinner("Finding table..."):
+            table_descriptions = list_table_descriptions(f"{api_url}/table-descriptions", database_connections[database_connection])  # noqa: E501
         st.markdown("### List of Tables")
         if table_descriptions:
             table_info = []
