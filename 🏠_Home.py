@@ -107,7 +107,7 @@ This app is a proof of concept using the Dataherald NL-2-SQL engine using a stre
 The data available includes: rents, sales prices, listing prices, price per square foot, number of homes sold, inventory and number of pending sales up to June 2023.
 """  # noqa: E501
 INTRO_EXAMPLE = """
-A sample question you can ask is: Did property prices increase or descrease in the US in 2020?
+A sample question you can ask is: Did property prices increase or decrease in the US in 2020?
 """
 
 st.set_page_config(
