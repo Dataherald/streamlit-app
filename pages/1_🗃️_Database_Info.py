@@ -22,8 +22,8 @@ def scan_database(api_url, db_connection_id, table_name):
     }
     try:
         response = requests.post(api_url, json=payload)
-        if response.status_code == 200:
-            st.success("Table scanned.")
+        if response.status_code == 201:
+            st.success("Table scanning started.")
         else:
             st.warning(f"Could not scan tables. {response.text}")
     except requests.exceptions.RequestException:
@@ -76,7 +76,7 @@ with st.form("Scan tables"):
     if st.form_submit_button("Scan table"):
         if table_name:
             with st.spinner("Scanning table..."):
-                scan_database(f"{api_url}/table-descriptions/scan", database_connections[database_connection], table_name)  # noqa: E501
+                scan_database(f"{api_url}/table-descriptions/sync-schemas", database_connections[database_connection], table_name)  # noqa: E501
         else:
             st.warning("Please provide a table name.")
 
@@ -93,11 +93,12 @@ with st.form("View scanned tables"):
         if table_descriptions:
             table_info = []
             for table_description in table_descriptions:
-                table_info.append([
-                    table_description['table_name'],
-                    table_description['description'],
-                    len(table_description['columns']),
-                    ])
+                if table_description['status'] == "SYNCHRONIZED":
+                    table_info.append([
+                        table_description['table_name'],
+                        table_description['description'],
+                        len(table_description['columns']),
+                        ])
             df = pd.DataFrame(
                 table_info,
                 columns=['Table name', 'Description', 'Number of Columns'])
