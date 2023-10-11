@@ -34,7 +34,7 @@ def answer_question(api_url, db_connection_id, question):
     }
     try:
         response = requests.post(api_url, json=request_body)
-        return response.json() if response.status_code == 200 else {}
+        return response.json() if response.status_code == 201 else {}
     except requests.exceptions.RequestException as e:
         st.error(f"Connection failed due to {e}.")
         return {}
