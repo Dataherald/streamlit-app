@@ -38,9 +38,10 @@ def add_golden_records(data):
         st.error("Connection failed.")
         return False
 
-def get_golden_records(page=1, limit=sys.maxsize):
+def get_golden_records(db_connection_id, page=1, limit=sys.maxsize):
     api_url = f'{HOST}/api/v1/golden-records'
     params = {
+        'db_connection_id': db_connection_id,
         'page': page,
         'limit': limit
     }
@@ -141,7 +142,7 @@ with st.form("Golden records"):
 
 with st.form("View golden records"):
     st.subheader("View golden records")
-    golden_records = get_golden_records()
+    golden_records = get_golden_records(st.session_state["database_connection_id"])
     st.write(f"Total golden records: {len(golden_records)}")
     search_query = st.text_input("Search by question or SQL query", "")
     default_limit_value = min(10, len(golden_records))
