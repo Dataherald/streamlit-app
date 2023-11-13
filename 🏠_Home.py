@@ -92,13 +92,9 @@ def run_answer_question(api_url, db_connection_id, user_input):
 
 
 WAITING_TIME_TEXTS = [
-    ":wave: Hello. Please, give me a few moments and I'll be back with your answer. Next you can see the steps I'm taking to answer your question.",  # noqa: E501
-    "🔎 Finding few-shot examples from vector store based on similarity of the golden records to the question",  # noqa: E501,
-    "📚 Finding the relevant tables based on the similarity of the question and the schema of the tables in Database",  # noqa: E501
-    "🤔 Finding the relevant columns of the tables chosen in the previous step",
-    "✨ Filtering the columns by gathering more information from the scanned tables",
-    "💭 Locating the entities in the columns",
-    "🔍 Retrieving the instructions before generating the SQL query",
+    ":wave: Hello. Please, give me a few moments and I'll be back with your answer.",  # noqa: E501
+    "🔎 I'm retrieving the golden records and finding the relevant tables and columns to your question",  # noqa: E501,
+    "✨ Retrieving the instructions before generating the SQL query",
     "💡 Generating the SQL query based on previous steps",
 ]
 
