@@ -114,7 +114,7 @@ st.sidebar.write("Query your structured database in natural language.")
 st.sidebar.write("Enable business users to get answers to ad hoc data questions in seconds.")  # noqa: E501
 st.sidebar.link_button("Visit our website", "https://www.dataherald.com/")
 st.sidebar.subheader("Connect to the engine")
-HOST = st.sidebar.text_input("Engine URI", value="http://streamlit_engine.dataherald.ai")
+HOST = st.sidebar.text_input("Engine URI", value="https://streamlit.dataherald.ai")
 st.session_state["HOST"] = HOST
 if st.sidebar.button("Connect"):
     url = HOST + '/api/v1/heartbeat'
