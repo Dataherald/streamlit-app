@@ -93,9 +93,6 @@ def run_answer_question(api_url, db_connection_id, user_input):
 
 WAITING_TIME_TEXTS = [
     ":wave: Hello. Please, give me a few moments and I'll be back with your answer.",  # noqa: E501
-    "🔎 I'm retrieving the golden records and finding the relevant tables and columns to your question",  # noqa: E501,
-    "✨ Retrieving the instructions before generating the SQL query",
-    "💡 Generating the SQL query based on previous steps",
 ]
 
 INTRODUCTION_TEXT = """
@@ -159,8 +156,6 @@ if user_input:
         answer_container.dataframe(results_from_db)
         st.divider()
         type_code(ANSWER['sql_query'])
-        confidence = f"📊 Confidence: {ANSWER['confidence_score']}"
-        type_text(confidence)
         nl_answer = f"🤔 Agent response: {ANSWER['response']}"
         type_text(nl_answer)
     except KeyError:
