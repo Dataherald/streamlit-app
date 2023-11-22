@@ -74,4 +74,4 @@ If you want to know how the app works, you can take a look at the following figu
 ## Contributions 🤝
 We are extremely open to contributions, be it through new features, new pages, or improved documentation.
 
-We are currently developing this repository, you can take a look at the roadmap we have for this app, and we will appreciate your contribution for the future works that we have. You can find the roadmap here (contribution)[https://github.com/Dataherald/streamlit-app/blob/main/contributions.md].
+We are currently developing this repository, you can take a look at the roadmap we have for this app, and we will appreciate your contribution for the future works that we have. You can find the roadmap [here](https://github.com/Dataherald/streamlit-app/blob/main/contributions.md#roadmap-%EF%B8%8F).
