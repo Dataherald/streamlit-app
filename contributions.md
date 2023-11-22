@@ -55,8 +55,8 @@ Your pull request will be reviewed by the maintainers and contributors. They may
 Once your pull request is approved, it will be merged into the main project. Congratulations, your contribution is now part of Dataherald Community App! 🚀
 
 ## Roadmap 🗺️
-If you're interested in the project's future plans and enhancements followin is the next steps we have a head of us:
+If you're interested in the project's future plans and enhancements, following are the next steps we have ahead of us:
 
-### 1. adding the feature to add database connection
+### 1. Adding the feature to add database connection
 
 ### 2. Adding some golden records to the app for the current database connections
