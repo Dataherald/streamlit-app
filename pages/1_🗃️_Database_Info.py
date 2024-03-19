@@ -94,15 +94,15 @@ with st.form("View scanned tables"):
         if table_descriptions:
             table_info = []
             for table_description in table_descriptions:
-                if table_description['status'] == "SYNCHRONIZED":
-                    table_info.append([
-                        table_description['table_name'],
-                        table_description['description'],
-                        len(table_description['columns']),
-                        ])
+                table_info.append([
+                    table_description['table_name'],
+                    table_description['description'],
+                    len(table_description['columns']),
+                    table_description['status']
+                    ])
             df = pd.DataFrame(
                 table_info,
-                columns=['Table name', 'Description', 'Number of Columns'])
+                columns=['Table name', 'Description', 'Number of Columns', 'Status'])
             st.table(df)
         else:
             st.warning("No table descriptions available.")

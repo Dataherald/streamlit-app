@@ -23,7 +23,7 @@ def get_all_database_connections():
         return {}
 
 def add_golden_records(data):
-    api_url = f'{HOST}/api/v1/golden-records'
+    api_url = f'{HOST}/api/v1/golden-sqls'
 
     try:
         response = requests.post(api_url, json=data)
@@ -39,7 +39,7 @@ def add_golden_records(data):
         return False
 
 def get_golden_records(db_connection_id, page=1, limit=sys.maxsize):
-    api_url = f'{HOST}/api/v1/golden-records'
+    api_url = f'{HOST}/api/v1/golden-sqls'
     params = {
         'db_connection_id': db_connection_id,
         'page': page,
@@ -58,7 +58,7 @@ def get_golden_records(db_connection_id, page=1, limit=sys.maxsize):
         return []
 
 def delete_golden_record(golden_record_id):
-    api_url = f'{HOST}/api/v1/golden-records/{golden_record_id}'
+    api_url = f'{HOST}/api/v1/golden-sqls/{golden_record_id}'
 
     try:
         response = requests.delete(api_url)
@@ -98,20 +98,20 @@ with st.form("Golden records"):
         ("Add", "Upload"))
     add_column, upload_column = st.columns(2)
     add_column.subheader("Add a golden record")
-    question = add_column.text_input("Question")
-    sql_query = add_column.text_input("SQL query")
+    prompt_text = add_column.text_input("Prompt text")
+    sql = add_column.text_input("SQL")
     upload_column.subheader("Upload golden records")
     uploaded_file = upload_column.file_uploader(
-        "Upload jsonl file (JSONL should contain question and sql_query fields))",
+        "Upload jsonl file (JSONL should contain prompt_text and sql keys))",
         type=["jsonl"])
-    if st.form_submit_button("Add"):
+    if st.form_submit_button("Upsert"):
         if add_or_upload == "Add":
             with st.spinner("Adding golden record..."):
                 try:
                     data = {
                         "db_connection_id": st.session_state["database_connection_id"],
-                        "question": question,
-                        "sql_query": sql_query
+                        "prompt_text": prompt_text,
+                        "sql": sql
                     }
                 except KeyError:
                     st.warning("Please select a database connection.")
@@ -123,11 +123,11 @@ with st.form("Golden records"):
                     for line in uploaded_file:
                         try:
                             line_data = json.loads(line.decode("utf-8").strip())  
-                            if "question" in line_data and "sql_query" in line_data:
+                            if "prompt_text" in line_data and "sql" in line_data:
                                 uploaded_data.append({
                                     "db_connection_id": st.session_state["database_connection_id"],  # noqa: E501
-                                    "question": line_data["question"],
-                                    "sql_query": line_data["sql_query"]
+                                    "prompt_text": line_data["prompt_text"],
+                                    "sql": line_data["sql"]
                                 })
                             else:
                                 st.warning("Uploaded file contains incomplete data.")
