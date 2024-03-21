@@ -60,6 +60,12 @@ To get started with Dataherald, follow these steps:
 ## Usage 📈
 To use Dataherald Community App and interact with databases, follow these steps:
 
+Change the following code parts based on your current implementation of Dataherald engine:
+```python
+DEFAULT_DATABASE = "RealEstate" # change this to your default database
+HOST = st.sidebar.text_input("Engine URI", value="https://streamlit.dataherald.ai") #change the value to your localhost or server URI where your engine is deployed
+```
+
 Start the Dataherald Community App application:
 
 ``` shell
