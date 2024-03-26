@@ -36,9 +36,13 @@ def answer_question(api_url, db_connection_id, question):
     try:
         with requests.post(api_url, json=request_body, stream=True) as response:
             response.raise_for_status()
-            for chunk in response.iter_content(chunk_size=128):
+            for chunk in response.iter_content(chunk_size=2048):
                 if chunk:
-                    yield chunk.decode("utf-8") + "\n"
+                    response = chunk.decode("utf-8")
+                    if "Final Answer:" in response and "```sql" in response:
+                        response = response.replace("Final Answer:", "Final Answer:\n")
+                        response = response.replace("```sql", "```")
+                    yield response + "\n"
                     time.sleep(0.1)
     except requests.exceptions.RequestException as e:
         st.error(f"Connection failed due to {e}.")
