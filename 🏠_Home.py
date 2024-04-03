@@ -39,8 +39,6 @@ def answer_question(api_url, db_connection_id, question):
             for chunk in response.iter_content(chunk_size=2048):
                 if chunk:
                     response = chunk.decode("utf-8")
-                    if "Final Answer:" in response and "```sql" in response:
-                        response = response.replace("Final Answer:", "Final Answer:\n")
                     yield response + "\n"
                     time.sleep(0.1)
     except requests.exceptions.RequestException as e:
